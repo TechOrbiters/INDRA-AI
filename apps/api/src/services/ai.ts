@@ -18,7 +18,7 @@ import { db } from './database';
 import { vectorService } from './vector';
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
-const COMPLETION_MODEL = process.env.COMPLETION_MODEL || 'gemini-2.5-flash-lite';
+const COMPLETION_MODEL = process.env.COMPLETION_MODEL || 'gemini-2.5-flash';
 const EMBEDDING_MODEL = process.env.EMBEDDING_MODEL || 'text-embedding-004';
 
 const isGeminiConfigured =
