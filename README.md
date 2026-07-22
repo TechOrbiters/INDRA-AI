@@ -7,6 +7,10 @@
 [![Stack](https://img.shields.io/badge/Stack-tRPC%20%7C%20React%20%7C%20Express%20%7C%20Prisma-purple?style=for-the-badge)](https://trpc.io)
 [![Orchestration](https://img.shields.io/badge/Orchestration-LangChain-green?style=for-the-badge&logo=chainlink)](https://js.langchain.com/)
 
+🔗 **Project Links:**
+* **Live Demo Application**: [https://indra-ai-13ede.web.app](https://indra-ai-13ede.web.app)
+* **GitHub Code Repository**: [https://github.com/TechOrbiters/INDRA-AI](https://github.com/TechOrbiters/INDRA-AI)
+
 ---
 
 ## 💡 Table of Contents
