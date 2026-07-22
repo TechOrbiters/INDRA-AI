@@ -1,0 +1,216 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Organization {
+  id               String    @id
+  name             String
+  domain           String
+  slug             String    @unique
+  plan             String    // 'starter' | 'professional' | 'enterprise'
+  seatCount        Int
+  activeSeatCount  Int
+  settings         String    // JSON string for Settings
+  billing          String    // JSON string for Stripe Billing info
+  stats            String    // JSON string for Stats
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  deletedAt        DateTime?
+}
+
+model User {
+  id                    String    @id // Firebase UID
+  orgId                 String
+  email                 String    @unique
+  displayName           String
+  avatarUrl             String?
+  role                  String    // 'super_admin' | 'knowledge_admin' | 'contributor' | 'viewer' | 'guest'
+  status                String    // 'active' | 'invited' | 'deactivated'
+  expertise             String    // JSON array of strings
+  departments           String    // JSON array of strings
+  preferences           String    // JSON string
+  collectionPermissions String    // JSON string
+  stats                 String    // JSON string
+  invitedBy             String?
+  joinedAt              DateTime?
+  invitedAt             DateTime  @default(now())
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+}
+
+model KnowledgeEntry {
+  id                  String    @id
+  orgId               String
+  title               String
+  summary             String
+  body                String    // TipTap rich text JSON
+  bodyText            String    // Raw text for indexing
+  type                String    // 'article' | 'decision_log' | 'how_to' | 'faq' | 'reference' | 'meeting_note'
+  status              String    // 'draft' | 'in_review' | 'published' | 'archived'
+  visibility          String    // 'org' | 'team' | 'private'
+  collectionId        String
+  tags                String    // JSON array of strings
+  aiTags              String    // JSON array of strings
+  authorId            String
+  contributorIds      String    // JSON array of strings
+  reviewerIds         String    // JSON array of strings
+  version             Int       @default(1)
+  versionHistory      String    // JSON array of version entries
+  metadata            String    // JSON string for type-specific metadata
+  embeddingModel      String    @default("text-embedding-3-large")
+  embeddingUpdatedAt  DateTime?
+  aiSummary           String?
+  aiConfidence        Float?
+  healthScore         Float?
+  sourceIntegration   String?   // JSON string if synced
+  expiresAt           DateTime?
+  publishedAt         DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  deletedAt           DateTime?
+  viewCount           Int       @default(0)
+  bookmarkCount       Int       @default(0)
+  feedbackPositive    Int       @default(0)
+  feedbackNegative    Int       @default(0)
+}
+
+model Collection {
+  id             String    @id
+  orgId          String
+  name           String
+  description    String?
+  parentId       String?
+  icon           String?
+  color          String?
+  ownerId        String
+  visibility     String    // 'org' | 'team' | 'private'
+  permissions    String    // JSON string
+  stats          String    // JSON string
+  createdBy      String
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model SearchQuery {
+  id               String    @id
+  orgId            String
+  userId           String
+  query            String
+  mode             String    // 'ai' | 'semantic' | 'keyword'
+  filters          String    // JSON string
+  resultCount      Int
+  aiAnswerProvided Boolean
+  aiConfidence     Float?
+  userFeedback     String?   // 'positive' | 'negative' | null
+  latencyMs        Int
+  sessionId        String
+  createdAt        DateTime  @default(now())
+}
+
+model AuditEvent {
+  id             String    @id
+  orgId          String
+  actorId        String
+  actorIp        String
+  actorUserAgent String
+  action         String
+  resourceType   String    // 'knowledge' | 'collection' | 'user' | 'integration' | 'org_settings'
+  resourceId     String
+  before         String?   // JSON string
+  after          String?   // JSON string
+  metadata       String?   // JSON string
+  createdAt      DateTime  @default(now())
+}
+
+model Integration {
+  id          String    @id
+  orgId       String
+  provider    String    // 'google_drive' | 'confluence' | 'notion' | etc.
+  status      String    // 'active' | 'error' | 'paused' | 'pending_auth'
+  credentials String    // JSON string encrypted/mocked
+  config      String    // JSON string
+  stats       String    // JSON string
+  connectedBy String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Notification {
+  id           String    @id
+  orgId        String
+  userId       String
+  type         String
+  title        String
+  body         String
+  resourceType String?
+  resourceId   String?
+  resourceUrl  String?
+  read         Boolean   @default(false)
+  readAt       DateTime?
+  createdAt    DateTime  @default(now())
+}
+
+// PostgreSQL Graph Tables Simulators
+model GraphEntity {
+  id         String    @id
+  orgId      String
+  entityType String    // 'person' | 'topic' | 'document' | 'project' | 'team'
+  name       String
+  attributes String?   // JSON string
+  createdAt  DateTime  @default(now())
+}
+
+model GraphRelationship {
+  id               String   @id
+  orgId            String
+  sourceEntityId   String
+  targetEntityId   String
+  relationshipType String   // 'authored' | 'references' | 'supersedes' | 'related_to' | 'expert_in'
+  weight           Float    @default(1.0)
+  metadata         String?  // JSON string
+  createdAt        DateTime @default(now())
+}
+
+model AnalyticsDaily {
+  id               Int      @id @default(autoincrement())
+  orgId            String
+  date             DateTime
+  dau              Int      @default(0)
+  searches         Int      @default(0)
+  aiAnswers        Int      @default(0)
+  knowledgeCreated Int      @default(0)
+  knowledgeUpdated Int      @default(0)
+  avgConfidence    Float?
+  avgLatencyMs     Int?
+
+  @@unique([orgId, date])
+}
+
+model BillingSnapshot {
+  id           Int      @id @default(autoincrement())
+  orgId        String
+  snapshotDate DateTime
+  activeSeats  Int
+  aiCalls      Int      @default(0)
+  storageBytes BigInt   @default(0)
+  createdAt    DateTime @default(now())
+
+  @@unique([orgId, snapshotDate])
+}
+
+model Webhook {
+  id              String    @id
+  orgId           String
+  url             String
+  events          String    // JSON string representing string[]
+  secretHash      String
+  active          Boolean   @default(true)
+  failureCount    Int       @default(0)
+  lastTriggeredAt DateTime?
+  createdAt       DateTime  @default(now())
+}
